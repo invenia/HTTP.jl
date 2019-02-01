@@ -69,17 +69,18 @@ function request(::Type{StreamLayer}, io::IO, request::Request, body;
             end
 
             if isaborted(http)
+                @warn("Connection aborted")
                 close(io)
                 aborted = true
             end
         end
-
     catch e
-        if write_error !== nothing
-            throw(write_error)
-        else
-            rethrow(e)
-        end
+        write_error !== nothing ? throw(write_error) : rethrow(e)
+    end
+
+    # We should probably rethrow the
+    if write_error !== nothing
+        @warn("Write error should produce as StatusError?: $write_error")
     end
 
     closewrite(http)
